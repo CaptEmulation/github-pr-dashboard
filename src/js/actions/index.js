@@ -1,15 +1,31 @@
 import { getAllPullRequests, getPullRequestDetails } from '../api/githubService';
 
-import config from '../../config/config.json';
+import rp from 'request-promise';
 
 export const ActionTypes = {
   ADD_PULL_REQUESTS: 'ADD_PULL_REQUESTS',
   UPDATE_PULL_REQUEST: 'UPDATE_PULL_REQUEST',
+  LOAD_CONFIG: 'LOAD_CONFIG',
   SET_FAILED_REPOS: 'SET_FAILED_REPOS',
   REFRESH: 'REFRESH',
   START_LOADING: 'START_LOADING',
   SET_ERROR: 'SET_ERROR'
 };
+
+export function loadConfigFromUrl(url) {
+  return (dispatch) => {
+    rp(url)
+      .then(response => dispatch(loadConfig(response.data))
+      .catch(setError);
+  }
+}
+
+export function loadConfig(config) {
+  return {
+    type: ActionTypes.LOAD_CONFIG,
+    config
+  };
+}
 
 export function setError(error) {
   return {
@@ -55,7 +71,8 @@ export function loadPullRequestDetails(owner, repo, number) {
 }
 
 export function loadPullRequests(value) {
-  return dispatch => {
+  return (dispatch, getState) => {
+    const { config } = getState();
     dispatch({ type: ActionTypes.START_LOADING });
     let repos = config.repos;
     if (value) {

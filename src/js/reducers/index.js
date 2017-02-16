@@ -1,5 +1,17 @@
 import { ActionTypes } from '../actions';
 
+export function configReducer(state = {}, action) {
+  switch (action.type) {
+    case ActionTypes.LOAD_CONFIG:
+      return {
+        ...state,
+        action.config
+      };
+    default:
+      return state;
+  }
+}
+
 export function loadingReducer(state = false, action) {
   switch (action.type) {
     case ActionTypes.START_LOADING:

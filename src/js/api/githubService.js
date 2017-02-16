@@ -1,13 +1,12 @@
 import axios from 'axios';
 import Promise from 'bluebird';
-import config from '../../config/config.json';
 
 const pullRequestData = {
   pullRequests: [],
   failedRepos: []
 };
 
-function apiCall(url, headers = {}) {
+function apiCall(url, headers = {}, config) {
   const options = { headers };
   if (config.username) {
     options.auth = {
@@ -18,33 +17,33 @@ function apiCall(url, headers = {}) {
   return axios.get(url, options);
 }
 
-function loadPullRequest(owner, repo, number) {
+function loadPullRequest(owner, repo, number, config) {
   const url = `${config.apiBaseUrl}/repos/${owner}/${repo}/pulls/${number}`;
-  return apiCall(url);
+  return apiCall(url, {}, config);
 }
 
-function loadPullRequestComments(url) {
+function loadPullRequestComments(url, config) {
   if (typeof config.comments === 'undefined') {
     return Promise.resolve({
       data: []
     });
   }
-  return apiCall(url);
+  return apiCall(url, {}, config);
 }
 
-function loadPullRequestReactions(owner, repo, number) {
+function loadPullRequestReactions(owner, repo, number, config) {
   if (config.reactions === false) {
     return Promise.resolve({
       data: []
     });
   }
   const url = `${config.apiBaseUrl}/repos/${owner}/${repo}/issues/${number}/reactions`;
-  return apiCall(url, { Accept: 'application/vnd.github.squirrel-girl-preview' });
+  return apiCall(url, { Accept: 'application/vnd.github.squirrel-girl-preview' }, config);
 }
 
-function loadCommitStatus(owner, repo, sha) {
+function loadCommitStatus(owner, repo, sha, config) {
   const url = `${config.apiBaseUrl}/repos/${owner}/${repo}/commits/${sha}/status`;
-  return apiCall(url);
+  return apiCall(url, {}, config);
 }
 
 export function getPullRequestDetails(owner, repo, number) {
@@ -64,14 +63,14 @@ export function getPullRequestDetails(owner, repo, number) {
   });
 }
 
-function loadPullRequests(owner, repo) {
+function loadPullRequests(owner, repo, config) {
   const url = `${config.apiBaseUrl}/repos/${owner}/${repo}/pulls`;
   const promise = apiCall(url);
   promise.catch(() => pullRequestData.failedRepos.push(`${owner}/${repo}`));
   return promise;
 }
 
-export function getAllPullRequests(repoNames) {
+export function getAllPullRequests(repoNames, config) {
   pullRequestData.failedRepos = [];
 
   const promises = repoNames.map(repoName => {
